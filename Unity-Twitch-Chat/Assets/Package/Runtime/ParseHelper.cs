@@ -39,7 +39,8 @@ namespace Lexone.UnityTwitchChat
                     continue;
 
                 // Find the tags we are interested in
-                switch (split[i].Substring(0, split[i].IndexOf('=')))
+                string tagName = split[i].Substring(0, split[i].IndexOf('='));
+                switch (tagName)
                 {
                     case "badges":
                         tags.badges = ParseBadges(value.Split(','));
@@ -63,6 +64,18 @@ namespace Lexone.UnityTwitchChat
 
                     case "user-id":
                         tags.userId = value;
+                        continue;
+
+                    case "msg-id":
+                        tags.msgId = value;
+                        continue;
+
+                    case "login": // USERNOTICE messages have login as tag
+                        tags.login = value;
+                        continue;
+
+                    default:
+                        tags.otherTags.Add(new IRCTag { name = tagName, value = value });
                         continue;
                 }
             }

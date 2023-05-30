@@ -44,7 +44,7 @@ namespace Lexone.UnityTwitchChat
 
                         // Decode the bytes to chars
                         int charsDecoded = decoder.GetChars(readBuffer, 0, bytesReceived, chars, 0);
-                        
+
                         for (int i = 0; i < charsDecoded; ++i)
                         {
                             // Character is a linebreak -> We have a complete line
@@ -119,6 +119,9 @@ namespace Lexone.UnityTwitchChat
                     case "NOTICE": // = Notice
                         HandleNOTICE(ircString, tagString);
                         break;
+                    case "USERNOTICE": // = Usernotice
+                        HandleUSERNOTICE(ircString, tagString);
+                        break;
 
                     // RPL messages
                     case "353": // = Successful channel join
@@ -162,6 +165,31 @@ namespace Lexone.UnityTwitchChat
 
             // Queue new chatter object
             chatterQueue.Enqueue(new Chatter(login, channel, message, tags));
+        }
+
+        /// <summary>
+        /// Handle a USERNOTICE message
+        /// </summary>
+        private void HandleUSERNOTICE(string ircString, string tagString)
+        {
+            var channel = ParseHelper.ParseChannel(ircString);
+            var tags = ParseHelper.ParseTags(tagString);
+
+            // Not all users have set their Twitch name color, so we need to check for that
+            if (tags.colorHex.Length <= 0)
+                tags.colorHex = useRandomColorForUndefined
+                    ? ChatColors.GetRandomNameColor(sessionRandom, tags.login)
+                    : "#FFFFFF";
+
+            // Sort emotes by startIndex to match emote order in the actual chat message
+            if (tags.emotes.Length > 0)
+            {
+                Array.Sort(tags.emotes, (a, b) =>
+                    a.indexes[0].startIndex.CompareTo(b.indexes[0].startIndex));
+            }
+
+            // Queue new chatter object
+            chatterQueue.Enqueue(new Chatter(tags.login, channel, null, tags));
         }
 
         /// <summary>
