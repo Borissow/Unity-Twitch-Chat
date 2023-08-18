@@ -80,6 +80,9 @@ namespace Lexone.UnityTwitchChat
         public void Ping() => connection?.Ping();
         public IRCTags ClientUserTags => connection?.ClientUserTags;
 
+        public bool IsConnectionAlive => connection != null;
+
+
         #region Unity methods
 
         private void Awake()
